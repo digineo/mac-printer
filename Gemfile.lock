@@ -1,0 +1,23 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    barby (0.6.4)
+    chunky_png (1.3.6)
+    pdf-core (0.6.1)
+    prawn (2.1.0)
+      pdf-core (~> 0.6.1)
+      ttfunk (~> 1.4.0)
+    rqrcode (0.10.1)
+      chunky_png (~> 1.0)
+    ttfunk (1.4.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  barby
+  prawn
+  rqrcode
+
+BUNDLED WITH
+   1.12.5
