@@ -27,7 +27,7 @@ class DeviceLabel
     annotate_barcode!
     annotate_mac!
     annotate_qrcode!
-    annotate_footer!
+    annotate_footer! unless FOOTER_TEXT == ""
 
     document.render
   end
@@ -42,7 +42,6 @@ class DeviceLabel
       }
 
       Prawn::Document.new(options).tap {|doc|
-        # doc.font      @font_family
         doc.font_size @font_size
       }
     end
@@ -80,13 +79,7 @@ private
   end
 
   def annotate_barcode!
-    o = Barby::PrawnOutputter.new Barby::Code128B.new(@mac)
-    o.height  = element_heights[:barcode]
-    o.margin  = 0
-    o.unbleed = 0
-    o.xdim    = inner_dim[:width]/o.width
-
-    o.annotate_pdf document, y: element_ypos[:barcode]
+    add_barcode :barcode, Barby::Code128B.new(@mac)
   end
 
   def annotate_mac!
@@ -101,24 +94,26 @@ private
   end
 
   def annotate_qrcode!
-    o = Barby::PrawnOutputter.new Barby::QrCode.new(@url, level: :m)
-    o.height  = element_heights[:qr_code]
-    o.margin  = 0
-    o.unbleed = 0
-    o.xdim    = inner_dim[:width]/o.width
-
-    o.annotate_pdf document, y: element_ypos[:qr_code]
+    add_barcode :qrcode, Barby::QrCode.new(@url, level: :m)
   end
 
   def annotate_footer!
-    return unless FOOTER_TEXT == ""
-
     document.text_box FOOTER_TEXT,
       at:     [0, element_ypos[:footer] + element_heights[:footer]],
       width:  inner_dim[:width],
       height: element_heights[:footer],
       align:  :right,
       valign: :bottom
+  end
+
+  def add_barcode(elem, code)
+    o = Barby::PrawnOutputter.new(code)
+    o.annotate_pdf document,
+      height:   element_heights[elem],
+      margin:   0,
+      unbleed:  0,
+      xdim:     inner_dim[:width]/o.width,
+      y:        element_ypos[elem]
   end
 end
 
