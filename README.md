@@ -1,11 +1,12 @@
 # MAC address label printer
 
-Simple Ruby script to create a MAC address label in three different formats
-(1D barcode, textual and as QR Code).
+Simple Ruby script to create a MAC address label in three different
+formats (1D barcode, textual and as QR Code).
 
-By default it creates PDF files in DIN A5 format, suitable for easy visibility.
-There are no configuration options (yet), but the code should be simple enough to
-perfom miniscule changes on an "as needed" basis.
+By default it creates PDF files in DIN A5 format, suitable for easy
+visibility. There are a few configuration options, but the layout is
+more or less static. The code should be simple enough to perfom changes
+on an "as needed" basis.
 
 
 ## Dependencies
@@ -21,13 +22,23 @@ should work as well. Then install the dependencies with:
 The `label.rb` creates a PDF file for each argument passed, i.e.:
 
     $ ./label.rb 12:34:56:78:90:AB 00:11:22:33:44:55
-    Written 12:34:56:78:90:AB to 1234567890AB.pdf
-    Written 00:11:22:33:44:55 to 001122334455.pdf
+    Written 12:34:56:78:90:AB to /home/.../mac-printer/1234567890AB.pdf
+    Written 00:11:22:33:44:55 to /home/.../mac-printer/001122334455.pdf
 
 You can then print it via `lp`:
 
     $ lp -p $PRINTER_NAME -o media=a5 1234567890AB.pdf 001122334455.pdf
     request id is PRINTER-NAME-42 (2 file(s))
+
+You can pass a `--footer` argument to add a custom footer on each label:
+
+    $ ./label.rb --footer "Hello from command line." $macaddr_list
+
+You can also pass a path (`--output`) to modify the output directory. The
+directory will be created if it doesn't exists:
+
+    $ ./label.rb --output /tmp/foo 12:34:56:78:90:AB
+    Written 12:34:56:78:90:AB to /tmp/foo/1234567890AB.pdf
 
 
 ## History

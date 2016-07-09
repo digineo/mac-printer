@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
+require "optparse"
+require "pathname"
+
 require "barby/barcode/code_128"
 require "barby/barcode/qr_code"
 require "barby/outputter/prawn_outputter"
@@ -12,7 +15,6 @@ class DeviceLabel
   # margin  [horizontal, vertical]  in mm
   # font_size                       in pt
   # font_family                     String
-  def initialize(mac, url, size: [148,210], margin: [30,25], font_size: 9, font_family: "Helvetica")
   def initialize(mac, url, footer: nil, size: [148,210], margin: [30,25], font_size: 9, font_family: "Helvetica")
     @mac          = mac
     @url          = url
@@ -25,9 +27,9 @@ class DeviceLabel
   end
 
   def render
-    annotate_barcode!
+    add_barcode :barcode, Barby::Code128B.new(@mac)
     annotate_mac!
-    annotate_qrcode!
+    add_barcode :qr_code, Barby::QrCode.new(@url, level: :m)
     annotate_footer! if @footer
 
     document.render
@@ -36,10 +38,9 @@ class DeviceLabel
   def document
     @document ||= begin
       options = {
-        page_size:    @page_size,
-        margin:       @margin.reverse, #!
-        compress:     true,
-        page_layout:  @page_size[0] > @page_size[1] ? :landscape : :portrait,
+        page_size:  @page_size,
+        margin:     @margin.reverse, #!
+        compress:   true
       }
 
       Prawn::Document.new(options).tap {|doc|
@@ -63,8 +64,8 @@ private
 
   def element_heights
     @element_heights ||= {
-      barcode:  65.0,
-      mac:      inner_dim[:height] - 65 - inner_dim[:width] - 24,
+      barcode:  60.0,
+      mac:      inner_dim[:height] - 60 - inner_dim[:width] - 24,
       qr_code:  inner_dim[:width],
       footer:   24.0,
     }
@@ -79,10 +80,6 @@ private
     }
   end
 
-  def annotate_barcode!
-    add_barcode :barcode, Barby::Code128B.new(@mac)
-  end
-
   def annotate_mac!
     document.font_size(30) {
       document.text_box @mac,
@@ -92,10 +89,6 @@ private
         align:  :center,
         valign: :center
     }
-  end
-
-  def annotate_qrcode!
-    add_barcode :qrcode, Barby::QrCode.new(@url, level: :m)
   end
 
   def annotate_footer!
@@ -118,15 +111,41 @@ private
   end
 end
 
+class Options < Struct.new(:dir, :footer)
+  def self.parse(options)
+    o = new ".", nil
+
+    OptionParser.new {|opts|
+      opts.banner = sprintf "Usage: %s [options] macaddr [macaddr [...]]", $0
+
+      opts.on "-fTEXT", "--footer=TEXT",
+              "footer text (optional)" do |footer_text|
+        o.footer = footer_text
+      end
+
+      opts.on "-oDIR", "--output=DIR",
+              "output directory (default: #{o.dir})" do |dir|
+        o.dir = Pathname.new(dir)
+      end
+    }.parse!(options)
+
+    o.dir = Pathname.new(o.dir).expand_path.tap(&:mkpath)
+    [o, options]
+  end
+end
+
+
 if $0 == __FILE__
-  ARGV.each do |arg|
-    mac   = arg.strip
+  opts, macs = Options.parse(ARGV)
+
+  macs.each do |mac|
+    mac   = mac.strip
     url   = sprintf "http://mgmt.ffhb.de/#/n/%s", mac.gsub(/:/, "")
 
-    label = DeviceLabel.new(mac, url).render
-    fname = sprintf "%s.pdf", mac.gsub(/\W/, "")
+    label = DeviceLabel.new(mac, url, footer: opts.footer).render
+    fname = opts.dir.join sprintf("%s.pdf", mac.gsub(/\W/, ""))
 
-    File.open(fname, "w") {|f| f.write label }
+    fname.open("wb") {|f| f.write label }
     printf "Written %s to %s\n", mac, fname
   end
 end
