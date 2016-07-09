@@ -1,10 +1,11 @@
 # MAC address label printer
 
-Simple Ruby script to create a MAC address label in three different formats.
+Simple Ruby script to create a MAC address label in three different formats
+(1D barcode, textual and as QR Code).
 
 By default it creates PDF files in DIN A5 format, suitable for easy visibility.
-There are no configuration options (yet), but the code is simple enough to
-perfom miniscule changes on a "an needed" basis.
+There are no configuration options (yet), but the code should be simple enough to
+perfom miniscule changes on an "as needed" basis.
 
 
 ## Dependencies
@@ -17,7 +18,7 @@ should work as well. Then install the dependencies with:
 
 ## Quickstart
 
-The `label.pdf` creates a PDF file for each argument passed, i.e.:
+The `label.rb` creates a PDF file for each argument passed, i.e.:
 
     $ ./label.rb 12:34:56:78:90:AB 00:11:22:33:44:55
     Written 12:34:56:78:90:AB to 1234567890AB.pdf
@@ -31,7 +32,7 @@ You can then print it via `lp`:
 
 ## History
 
-This script was built as internal library at [Digineo GmbH](https://www.digineo.de)
+This script was built as an internal library at [Digineo GmbH](https://www.digineo.de)
 and made publicly available in 2016.
 
 
