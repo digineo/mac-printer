@@ -7,15 +7,16 @@ require "barby/outputter/prawn_outputter"
 class DeviceLabel
   PT_PER_MM = 841.89/297 # ~2.835
 
-  FOOTER_TEXT = "" # change if needed
-
+  # footer                          String
   # size    [width, height]         in mm
   # margin  [horizontal, vertical]  in mm
   # font_size                       in pt
   # font_family                     String
   def initialize(mac, url, size: [148,210], margin: [30,25], font_size: 9, font_family: "Helvetica")
+  def initialize(mac, url, footer: nil, size: [148,210], margin: [30,25], font_size: 9, font_family: "Helvetica")
     @mac          = mac
     @url          = url
+    @footer       = footer
     @font_size    = font_size
     @font_family  = font_family
 
@@ -27,7 +28,7 @@ class DeviceLabel
     annotate_barcode!
     annotate_mac!
     annotate_qrcode!
-    annotate_footer! unless FOOTER_TEXT == ""
+    annotate_footer! if @footer
 
     document.render
   end
@@ -98,12 +99,12 @@ private
   end
 
   def annotate_footer!
-    document.text_box FOOTER_TEXT,
-      at:     [0, element_ypos[:footer] + element_heights[:footer]],
-      width:  inner_dim[:width],
-      height: element_heights[:footer],
-      align:  :right,
-      valign: :bottom
+    document.text_box @footer,
+      at:       [0, element_ypos[:footer] + element_heights[:footer]],
+      width:    inner_dim[:width],
+      height:   element_heights[:footer],
+      align:    :right,
+      valign:   :bottom
   end
 
   def add_barcode(elem, code)
