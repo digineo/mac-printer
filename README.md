@@ -16,6 +16,10 @@ should work as well. Then install the dependencies with:
 
     $ bundle install
 
+If you want to use the file-join feature, you'll need to install "the pdf
+toolkit" ([pdftk](https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/)), and
+the `pdftk` binary must be in your `$PATH`.
+
 
 ## Quickstart
 
@@ -29,6 +33,14 @@ You can then print it via `lp`:
 
     $ lp -p $PRINTER_NAME -o media=a5 1234567890AB.pdf 001122334455.pdf
     request id is PRINTER-NAME-42 (2 file(s))
+
+To create a single PDF containing all labels, you can pass a path to a
+filename with `--join`:
+
+    $ ./label.rb --join all.pdf 12:34:56:78:90:AB 00:11:22:33:44:55
+    Written 12:34:56:78:90:AB to /home/.../mac-printer/1234567890AB.pdf
+    Written 00:11:22:33:44:55 to /home/.../mac-printer/001122334455.pdf
+    Joined all labels to /home/.../mac-printer/all.pdf
 
 You can pass a `--footer` argument to add a custom footer on each label:
 

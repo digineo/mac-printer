@@ -111,9 +111,9 @@ private
   end
 end
 
-class Options < Struct.new(:dir, :footer)
+class Options < Struct.new(:dir, :footer, :join)
   def self.parse(options)
-    o = new ".", nil
+    o = new ".", nil, false
 
     OptionParser.new {|opts|
       opts.banner = sprintf "Usage: %s [options] macaddr [macaddr [...]]", $0
@@ -125,11 +125,17 @@ class Options < Struct.new(:dir, :footer)
 
       opts.on "-oDIR", "--output=DIR",
               "output directory (default: #{o.dir})" do |dir|
-        o.dir = Pathname.new(dir)
+        o.dir = dir
+      end
+
+      opts.on "-jFILE", "--join=FILE",
+              "join all input files using pdftk" do |name|
+        o.join = name
       end
     }.parse!(options)
 
-    o.dir = Pathname.new(o.dir).expand_path.tap(&:mkpath)
+    o.dir   = Pathname.new(o.dir).expand_path.tap(&:mkpath)
+    o.join  = Pathname.new(o.join).expand_path
     [o, options]
   end
 end
@@ -138,7 +144,7 @@ end
 if $0 == __FILE__
   opts, macs = Options.parse(ARGV)
 
-  macs.each do |mac|
+  fnames = macs.map do |mac|
     mac   = mac.strip
     url   = sprintf "http://mgmt.ffhb.de/#/n/%s", mac.gsub(/:/, "")
 
@@ -147,5 +153,13 @@ if $0 == __FILE__
 
     fname.open("wb") {|f| f.write label }
     printf "Written %s to %s\n", mac, fname
+
+    fname
+  end
+
+  if opts.join
+    input_list = fnames.map(&:to_s).join(' ')
+    system "pdftk #{input_list} cat output #{opts.join}"
+    printf "Joined all labels to %s\n", opts.join
   end
 end
